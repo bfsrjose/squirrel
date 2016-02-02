@@ -16,6 +16,7 @@ type selectData struct {
 	Distinct          bool
 	Columns           []Sqlizer
 	From              Sqlizer
+	Into              string
 	Joins             []Sqlizer
 	WhereParts        []Sqlizer
 	GroupBys          []string
@@ -75,6 +76,11 @@ func (d *selectData) ToSql() (sqlStr string, args []interface{}, err error) {
 		if err != nil {
 			return
 		}
+	}
+
+	if len(d.Into) > 0 {
+		sql.WriteString(" INTO ")
+		sql.WriteString(d.Into)
 	}
 
 	if d.From != nil {
@@ -215,6 +221,11 @@ func (b SelectBuilder) Columns(columns ...string) SelectBuilder {
 //   Column("IF(col IN ("+squirrel.Placeholders(3)+"), 1, 0) as col", 1, 2, 3)
 func (b SelectBuilder) Column(column interface{}, args ...interface{}) SelectBuilder {
 	return builder.Append(b, "Columns", newPart(column, args...)).(SelectBuilder)
+}
+
+// Into sets the INTO clause of the query.
+func (b SelectBuilder) Into(into string) SelectBuilder {
+	return builder.Set(b, "Into", into).(SelectBuilder)
 }
 
 // From sets the FROM clause of the query.
